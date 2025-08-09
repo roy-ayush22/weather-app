@@ -13,28 +13,33 @@ app.get("/api/weather", async (req, res) => {
 
   const city = req.query.city as string;
   if (!city) {
-    res.status(400).json({
+    return res.status(400).json({
       message: "city parameter is required",
     });
   }
 
   if (!API_KEY) {
-    res.status(500).json({
+    return res.status(500).json({
       message: "api key invalid or missing",
     });
   }
 
-  const response = await axios.get(
-    `${API_URL}?q=${city}&appid=${API_KEY}&units=metric`
-  );
+  try {
+    const response = await axios.get(
+      `${API_URL}?q=${city}&appid=${API_KEY}&units=metric`
+    );
 
-  res.json({
-    city: response.data.name,
-    country: response.data.sys.country,
-    temperature: response.data.main.temp,
-    windSpeed: response.data.wind.speed,
-    humidity: response.data.main.humidity,
-  });
+    return res.json(response.data)
+  } catch (error) {
+    if (axios.isAxiosError(error)) {
+      return res.status(error.response?.status || 500).json({
+        message: error.response?.data?.message || "Failed to fetch weather data",
+      });
+    }
+    return res.status(500).json({
+      message: "Internal server error",
+    });
+  }
 });
 
 app.listen(3000, () => {
