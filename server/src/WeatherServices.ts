@@ -1,10 +1,20 @@
 import express from "express";
 import axios from "axios";
 import dotenv from "dotenv";
+import cors from "cors";
 
 dotenv.config();
 
 const app = express();
+
+app.use(
+  cors({
+    origin: "http://localhost:5173", 
+    methods: ["GET", "POST"],
+    allowedHeaders: ["Content-Type"],
+  })
+);
+
 app.use(express.json());
 
 app.get("/api/weather", async (req, res) => {
@@ -29,11 +39,12 @@ app.get("/api/weather", async (req, res) => {
       `${API_URL}?q=${city}&appid=${API_KEY}&units=metric`
     );
 
-    return res.json(response.data)
+    return res.json(response.data);
   } catch (error) {
     if (axios.isAxiosError(error)) {
       return res.status(error.response?.status || 500).json({
-        message: error.response?.data?.message || "Failed to fetch weather data",
+        message:
+          error.response?.data?.message || "Failed to fetch weather data",
       });
     }
     return res.status(500).json({
